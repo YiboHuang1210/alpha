@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="true" scanPeriod="60 seconds">
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+    <contextName>alpha</contextName>
+    <property scope="context" name="CHARSET" value="utf-8" />
+    <property scope="context" name="appName" value="alpha"/>
+    <property scope="context" name="LOG_HOME" value="/alphalogs" />
+    <property scope="context" name="APP_LOG_HOME" value="${LOG_HOME}/${appName}/app" />
+    <property scope="context" name="INF_LOG_HOME" value="${LOG_HOME}/${appName}/inf" />
+    <property scope="context" name="ERR_LOG_HOME" value="${LOG_HOME}/${appName}/err" />
+
+    <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+    <property scope="context" name="CONSOLE_PATTERN" value='%d{yyyy-MM-dd HH:mm:ss.SSS}-[${HOSTNAME}]-[%thread]-[%level]-%C\:%M:%L-%msg %ex{full}%n' />
+    <property scope="context" name="APP_PATTERN" value='%d{yyyy-MM-dd HH:mm:ss.SSS}|%level|%M|0|%thread|%replace(%.-2000msg){"(\r|\n)","\t"}|"%.-2000ex{full}"%n' />
+    <property scope="context" name="INF_PATTERN" value='%msg%n' />
+    <property scope="context" name="ERR_PATTERN" value='${APP_PATTERN}' />
+
+    <!-- 错误日志文件 -->
+    <!-- RollingFileAppender：滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件 -->
+    <!-- 以下的大概意思是：1.先按日期存日志，日期变了，将前一天的日志文件名重命名为XXX%日期%索引，新的日志仍然是demo.log -->
+    <!--             2.如果日期没有发生变化，但是当前日志的文件大小超过1KB时，对当前日志进行分割 重命名-->
+    <appender name="ERR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 只记录error及以上级别的日志 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <file>${ERR_LOG_HOME}/${HOSTNAME}.error.ing</file>
+        <!-- rollingPolicy:当发生滚动时，决定 RollingFileAppender 的行为，涉及文件移动和重命名。 -->
+        <!-- TimeBasedRollingPolicy： 最常用的滚动策略，它根据时间来制定滚动策略，既负责滚动也负责出发滚动 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 活动文件的名字会根据fileNamePattern的值，每隔一段时间改变一次 -->
+            <!--日志文件输出的文件名，按天生成文件名 -->
+            <fileNamePattern>${ERR_LOG_HOME}/${HOSTNAME}.error.%d{yyyy-MM-dd}.log.%i.zip</fileNamePattern>
+            <!-- 每产生一个日志文件，该日志文件的保存期限为30天 -->
+            <MaxHistory>60</MaxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- 按时间回滚的同时，按文件大小来回滚 ，默认值是10MB-->
+                <maxFileSize>30MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- 记录日志的编码:此处设置字符集 - -->
+            <charset>${CHARSET}</charset>
+            <!-- pattern节点，用来设置日志的输入格式 -->
+            <pattern>${ERR_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 接口日志文件 -->
+    <appender name="INF_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${INF_LOG_HOME}/${HOSTNAME}.inf.ing</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${INF_LOG_HOME}/${HOSTNAME}.%d{yyyy-MM-dd}.json.%i
+            </fileNamePattern>
+            <MaxHistory>1440</MaxHistory><!--日志文件保存个数 -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- 按时间回滚的同时，按文件大小来回滚 -->
+                <maxFileSize>30MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>${CHARSET}</charset>
+            <pattern>${INF_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 开发者日志文件 -->
+    <appender name="APP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 只记录info及以上级别的日志 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>${APP_LOG_HOME}/${HOSTNAME}.app.ing</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名 -->
+            <fileNamePattern>${APP_LOG_HOME}/${HOSTNAME}.%d{yyyy-MM-dd}.log.%i
+            </fileNamePattern>
+            <MaxHistory>240</MaxHistory><!--日志文件保留个数 -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- 按时间回滚的同时，按文件大小来回滚 -->
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>${CHARSET}</charset>
+            <pattern>${APP_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 控制台输出 -->
+    <!-- %m输出的信息,%p日志级别,%t线程名,%d日期,%c类的全名,%i索引【从数字0开始递增】,,, -->
+    <!-- appender是configuration的子节点，是负责写日志的组件。 -->
+    <!-- ConsoleAppender：把日志输出到控制台 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${CONSOLE_PATTERN}</pattern>
+            <!-- 控制台也要使用UTF-8，不要使用GBK，否则会中文乱码 -->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name ="ERR_ASYNC" class= "ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold >0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref ="ERR_FILE"/>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name ="INF_ASYNC" class= "ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold >0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref ="INF_FILE"/>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name ="APP_ASYNC" class= "ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold >0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref ="APP_FILE"/>
+    </appender>
+
+    <!-- 输出到数据库 -->
+    <appender name="sqlappender" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold >0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <appender-ref ref ="INF_FILE"/>
+    </appender>
+
+    <!--here:change hostname to your machine hostname,but change it to 'lin' on server,ok!-->
+    <if condition='property("HOSTNAME").contains("lin-")'>
+        <then>
+            <!-- 线上环境输出日志级别的配置，根据日志规范约定输出 -->
+            <root level="DEBUG">
+                <appender-ref ref="ERR_ASYNC" />
+            </root>
+            <logger name="intflog" level="DEBUG" additivity="false">
+                <appender-ref ref="INF_ASYNC" />
+            </logger>
+            <!-- 指定项目中某个包，当有日志操作行为时的日志记录级别 -->
+            <!-- com.hyb为根包，也就是只要是发生在这个根包下面的所有日志操作行为的权限都是DEBUG -->
+            <!-- 级别依次为【从高到低】：FATAL > ERROR > WARN > INFO > DEBUG > TRACE  -->
+            <logger name="com.hyb.alpha" level="DEBUG">
+                <appender-ref ref="APP_ASYNC" />
+            </logger>s
+            <logger name="com.alibaba.dubbo.registry.redis" level="DEBUG" />
+            <logger name="com.alibaba.cobar.client" level="DEBUG" />
+            <logger name="org.springframework.aop.framework.Cglib2AopProxy" level="DEBUG" />
+            <logger name="org.springframework" level="DEBUG" />
+        </then>
+        <else>
+            <!-- 自测环境的配置，全部输出到控制台 -->
+            <root level="DEBUG">
+                <appender-ref ref="STDOUT" />
+            </root>
+
+            <!--显示sql的配置 要显示时需把root的level改成debug-->
+            <!--<logger name="java.sql.Connection">-->
+            <!--<level value="debug" />-->
+            <!--<appender-ref ref="sqlappender" />-->
+            <!--</logger>-->
+
+            <!--<logger name="java.sql.Statement">-->
+            <!--<level value="debug" />-->
+            <!--<appender-ref ref="sqlappender" />-->
+            <!--</logger>-->
+
+            <!--<logger name="java.sql.CallableStatement">-->
+            <!--<level value="debug" />-->
+            <!--<appender-ref ref="sqlappender" />-->
+            <!--</logger>-->
+
+            <!--<logger name="java.sql.PreparedStatement">-->
+            <!--<level value="debug" />-->
+            <!--<appender-ref ref="sqlappender" />-->
+            <!--</logger>-->
+
+            <logger name="com.alibaba.dubbo.registry.redis" level="WARN" />
+            <logger name="com.alibaba.cobar.client" level="WARN" />
+            <logger name="org.springframework.aop.framework.Cglib2AopProxy" level="WARN" />
+            <logger name="org.springframework" level="WARN" />
+            <logger name="com.google" level="WARN" />
+            <logger name="org.apache" level="WARN" />
+            <logger name="net.rubyeye" level="WARN" />
+            <logger name="springfox.documentation" level="WARN" />
+        </else>
+    </if>
+</configuration>

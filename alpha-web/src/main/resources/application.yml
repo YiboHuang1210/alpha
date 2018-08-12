@@ -1,0 +1,98 @@
+server:
+    port: 8080
+
+spring:
+    dubbo:
+        application:            #应用配置，用于配置当前应用信息，不管该应用是提供者还是消费者。
+            name: Alpha
+        registry:                 #注册中心配置，用于配置连接注册中心相关信息。
+            address: zookeeper://localhost:2181
+        protocol:     #协议配置，用于配置提供服务的协议信息，协议由提供方指定，消费方被动接受。
+            name: dubbo
+            port: 20880
+        scan: com.hyb.alpha.api.dubbo.provider, com.hyb.alpha.api.dubbo.consumer  #服务暴露与发现消费所在的package
+
+    redis:
+        #数据库索引
+        database: 0
+        host: localhost
+        port: 6379
+        password: root
+        jedis:
+            pool:
+                #最大连接数
+                max-active: 8
+                #最大阻塞等待时间(负数表示没限制)
+                max-wait: -1
+                #最大空闲
+                max-idle: 8
+                #最小空闲
+                min-idle: 0
+                #连接超时时间
+                timeout: 10000
+
+    memcached:
+        server: localhost:11211
+        poolsize: 5
+        timeout: 200
+
+    activemq:
+        broker-url: tcp://localhost:61616
+        #集群配置
+        #broker-url: failover:(tcp://localhost:61616,tcp://localhost:61617)
+        user: admin
+        password: admin
+        pool:
+            enable: true
+            max-connections : 100
+            expiry-timeout: 10000
+            idle-timeout : 30000
+    jms:
+        pub-sub-domain: true #为true时是topic模式，为false是queue模式
+
+    datasource:
+        name: mysql_test
+        type: com.alibaba.druid.pool.DruidDataSource
+        #druid相关配置
+        druid:
+            #监控统计拦截的filters
+            filters: stat
+            driver-class-name: com.mysql.jdbc.Driver
+            #基本属性
+            url: jdbc:mysql://localhost:3306/alpha?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+            username: root
+            password: root
+            #配置初始化大小/最小/最大
+            initial-size: 1
+            min-idle: 1
+            max-active: 20
+            #获取连接等待超时时间
+            max-wait: 60000
+            #间隔多久进行一次检测，检测需要关闭的空闲连接
+            time-between-eviction-runs-millis: 60000
+            #一个连接在池中最小生存的时间
+            min-evictable-idle-time-millis: 300000
+            validation-query: SELECT 'x'
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            #打开PSCache，并指定每个连接上PSCache的大小。oracle设为true，mysql设为false。分库分表较多推荐设置为false
+            pool-prepared-statements: false
+            max-pool-prepared-statement-per-connection-size: 20
+
+mybatis:
+    # 映射文件所在路径
+    mapper-locations: classpath:mappers/*.xml
+    # pojo类所在包路径
+    type-aliases-package: com.hyb.alpha.domain
+
+#pagehelper
+pagehelper:
+    helperDialect: mysql
+    reasonable: true
+    supportMethodsArguments: true
+    params: count=countSql
+    returnPageInfo: check
+
+logging:
+    config: classpath:logback.xml

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hyb.alpha.dao.ZooMapper">
+
+    <resultMap id="Zoo" type="com.hyb.alpha.domain.po.ZooPO">
+        <result column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="is_deleted" property="isDeleted" jdbcType="INTEGER"/>
+        <result column="gmt_create" property="gmtCreate" jdbcType="TIMESTAMP"/>
+        <result column="gmt_modified" property="gmtModified" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="fieldSql">
+        t.id
+        , t.name
+        , t.is_deleted
+        , t.gmt_create
+        , t.gmt_modified
+    </sql>
+
+    <sql id="whereSql">
+        <if test="id != null">
+            AND t.id = #{id,jdbcType = INTEGER}
+        </if>
+        <if test="name != null and name != ''">
+            AND t.name = #{name,jdbcType = VARCHAR}
+        </if>
+        <if test="isDeleted != null">
+            AND t.is_deleted = #{isDeleted,jdbcType = VARCHAR}
+        </if>
+        <if test="createStartTime != null and createStartTime != ''">
+            AND t.gmt_create &gt;= to_date(#{createStartTime},'YYYY-MM-DD HH24:mi:ss')
+        </if>
+        <if test="createEndTime != null and createEndTime != ''">
+            and t.gmt_create &lt;= to_date(#{createEndTime},'YYYY-MM-DD HH24:mi:ss')
+        </if>
+        <if test="modifiedStartTime != null and modifiedStartTime != ''">
+            AND t.gmt_modified &gt;= to_date(#{modifiedStartTime},'YYYY-MM-DD HH24:mi:ss')
+        </if>
+        <if test="modifiedEndTime != null and modifiedEndTime != ''">
+            AND t.gmt_modified &lt;= to_date(#{modifiedEndTime},'YYYY-MM-DD HH24:mi:ss')
+        </if>
+    </sql>
+
+    <select id="select" parameterType="Integer" resultMap="Zoo" >
+        SELECT
+        <include refid="fieldSql"/>
+        FROM zoo t
+        WHERE t.id = #{id,jdbcType = INTEGER}
+    </select>
+
+    <select id="count" parameterType="com.hyb.alpha.domain.condition.ZooCondition" resultType="Integer" >
+        SELECT
+        count(1)
+        FROM zoo t
+        WHERE 1=1
+        <include refid="whereSql"/>
+    </select>
+
+    <select id="selectList" parameterType="com.hyb.alpha.domain.condition.ZooCondition" resultMap="Zoo" >
+        SELECT
+        <include refid="fieldSql"/>
+        FROM zoo t
+        WHERE 1=1
+        <include refid="whereSql"/>
+        <if test="orderBy != null and orderBy != ''">
+            ORDER BY ${orderBy}
+        </if>
+        <if test="orderBy == null or orderBy == ''">
+            ORDER BY t.gmt_create DESC
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.hyb.alpha.domain.po.ZooPO">
+        <selectKey resultType="Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO zoo(
+        id
+        <if test="name != null and name != ''">
+            ,name
+        </if>
+        <if test="isDeleted != null">
+            ,is_deleted
+        </if>
+        <if test="gmtCreate != null">
+            ,gmt_create
+        </if>
+        <if test="gmtModified != null">
+            ,gmt_modified
+        </if>
+        )
+        values(
+        #{id,jdbcType=INTEGER}
+        <if test="name != null and name != ''">
+            ,#{name,jdbcType=VARCHAR}
+        </if>
+        <if test="isDeleted != null">
+            ,#{isDeleted,jdbcType=INTEGER}
+        </if>
+        <if test="gmtCreate != null">
+            ,#{gmtCreate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="gmtModified != null">
+            ,#{gmtModified,jdbcType=TIMESTAMP}
+        </if>
+        )
+    </insert>
+
+    <update id="update" parameterType="com.hyb.alpha.domain.po.ZooPO">
+        UPDATE zoo t
+        <set>
+            <if test="name != null and name != ''">
+                t.name = #{name,jdbcType = VARCHAR},
+            </if>
+            <if test="isDeleted != null">
+                t.is_deleted = #{isDeleted,jdbcType = INTEGER},
+            </if>
+            <if test="gmtCreate != null">
+                t.gmt_create = #{gmtCreate,jdbcType = TIMESTAMP},
+            </if>
+            <if test="gmtModified != null">
+                t.gmt_modified = #{gmtModified,jdbcType = TIMESTAMP},
+            </if>
+        </set>
+        WHERE
+        t.id= #{id,jdbcType = INTEGER}
+    </update>
+
+    <delete id="delete" parameterType="INTEGER">
+        DELETE FROM zoo
+        WHERE id = #{id,jdbcType=INTEGER}
+        AND 1=0
+    </delete>
+</mapper>
